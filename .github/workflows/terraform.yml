@@ -49,10 +49,10 @@ jobs:
       - name: Terraform Plan
         run: |
           cd environments/${ENV}
-          terraform plan
+          terraform plan -out=tfplan
 
       - name: Terraform Apply
-        if: github.event_name == 'workflow_dispatch'   # ✅ manual approval
+        if: github.event_name == 'workflow_dispatch'
         run: |
           cd environments/${ENV}
-          terraform apply -auto-approve
+          terraform apply -auto-approve tfplan
