@@ -1,0 +1,78 @@
+name: Terraform Multi-Env
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Choose environment"
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+
+permissions:
+  id-token: write   # 🔥 REQUIRED for OIDC
+  contents: read
+
+jobs:
+
+  terraform-dev:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      - name: Terraform Init
+        run: |
+          cd environments/dev
+          terraform init
+
+      - name: Terraform Apply
+        run: |
+          cd environments/dev
+          terraform apply -auto-approve
+
+  terraform-manual:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      - name: Terraform Init
+        run: |
+          cd environments/${{ github.event.inputs.environment }}
+          terraform init
+
+      - name: Terraform Apply
+        run: |
+          cd environments/${{ github.event.inputs.environment }}
+          terraform apply -auto-approve
