@@ -1,57 +1,46 @@
-name: Terraform Multi-Env
+name: Terraform Multi-Env Deploy
 
 on:
   push:
     branches:
       - main
 
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: "Choose environment"
-        required: true
-        default: dev
-        type: choice
-        options:
-          - dev
-          - qa
-          - prod
-
 jobs:
   terraform:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        env: [dev, qa, prod]
 
     permissions:
       id-token: write
       contents: read
 
-    env:
-      ENV: ${{ github.event.inputs.environment || 'dev' }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4   # ✅ updated
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
       - name: Configure AWS (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4   # ✅ updated
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: eu-west-1
 
       - name: Terraform Init
         run: |
-          cd environments/${ENV}
+          cd environments/${{ matrix.env }}
           terraform init
 
       - name: Terraform Plan
         run: |
-          cd environments/${ENV}
+          cd environments/${{ matrix.env }}
           terraform plan -out=tfplan
 
       - name: Terraform Apply
         run: |
-          cd environments/${ENV}
+          cd environments/${{ matrix.env }}
           terraform apply -auto-approve tfplan
