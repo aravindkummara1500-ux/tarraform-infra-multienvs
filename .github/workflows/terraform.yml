@@ -1,17 +1,46 @@
-- name: Destroy DEV
-  run: |
-    cd environments/dev
-    terraform init
-    terraform destroy -auto-approve
+name: Terraform Destroy
 
-- name: Destroy QA
-  run: |
-    cd environments/qa
-    terraform init
-    terraform destroy -auto-approve
+on:
+  workflow_dispatch:
 
-- name: Destroy PROD
-  run: |
-    cd environments/prod
-    terraform init
-    terraform destroy -auto-approve
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      # 🔥 DESTROY DEV
+      - name: Destroy DEV
+        run: |
+          cd environments/dev
+          terraform init
+          terraform destroy -auto-approve
+
+      # 🔥 DESTROY QA
+      - name: Destroy QA
+        run: |
+          cd environments/qa
+          terraform init
+          terraform destroy -auto-approve
+
+      # 🔥 DESTROY PROD
+      - name: Destroy PROD
+        run: |
+          cd environments/prod
+          terraform init
+          terraform destroy -auto-approve
