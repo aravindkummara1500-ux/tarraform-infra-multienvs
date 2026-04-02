@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write   # 🔥 MUST be here
+      id-token: write        # 🔥 REQUIRED for OIDC
       contents: read
 
     steps:
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write   # 🔥 MUST be here
+      id-token: write        # 🔥 REQUIRED for OIDC
       contents: read
 
     steps:
