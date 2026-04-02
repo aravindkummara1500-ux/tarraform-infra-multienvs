@@ -52,7 +52,6 @@ jobs:
           terraform plan -out=tfplan
 
       - name: Terraform Apply
-        if: github.event_name == 'workflow_dispatch'
         run: |
           cd environments/${ENV}
           terraform apply -auto-approve tfplan
